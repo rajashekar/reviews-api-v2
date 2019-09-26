@@ -112,5 +112,80 @@ curl -v -H 'Content-type: application/json' localhost:8080/comments/reviews/1
 [{"id":1,"body":"Tyler, Stop worrying about i, follow white rabbit","username":"Neo","review":{"id":1,"username":"Tyler Durden","rating":3,"title":"its just a phone with i","body":"i seems more egotistical","product":{"id":1,"name":"iPhone","description":"Phone with i","price":1000}}}]
 ```
 
+
+```
+> use reviewsdb
+switched to db reviewsdb
+````
+
+```
+> db.createUser({"user": "review", "pwd": "password", "roles": ["readWrite","dbAdmin"]});
+Successfully added user: { "user" : "review", "roles" : [ "readWrite", "dbAdmin" ] }
+```
+
+```
+mongo "mongodb://review:password@localhost:27017/reviewsdb"
+```
+
+```
+> show collections;
+reviews
+> db.reviews.find().pretty()
+{
+	"_id" : 1,
+	"username" : "Tyler Durden",
+	"rating" : 3,
+	"title" : "its just a phone with i",
+	"body" : "i seems more egotistical",
+	"product" : {
+		"_id" : 1,
+		"name" : "iPhone",
+		"description" : "Phone with i",
+		"price" : 1000
+	},
+	"comments" : [ ],
+	"_class" : "com.udacity.course3.reviews.entity.Reviews"
+}
+```
+
+```
+> db.reviews.find().pretty()
+{
+	"_id" : 1,
+	"username" : "Tyler Durden",
+	"rating" : 3,
+	"title" : "its just a phone with i",
+	"body" : "i seems more egotistical",
+	"product" : {
+		"_id" : 1,
+		"name" : "iPhone",
+		"description" : "Phone with i",
+		"price" : 1000
+	},
+	"comments" : [
+		{
+			"_id" : 1,
+			"body" : "Tyler, Stop worrying about i, follow white rabbit",
+			"username" : "Neo",
+			"review" : {
+				"_id" : 1,
+				"username" : "Tyler Durden",
+				"rating" : 3,
+				"title" : "its just a phone with i",
+				"body" : "i seems more egotistical",
+				"product" : {
+					"_id" : 1,
+					"name" : "iPhone",
+					"description" : "Phone with i",
+					"price" : 1000
+				}
+			}
+		}
+	],
+	"_class" : "com.udacity.course3.reviews.entity.Reviews"
+}
+```
+
+
 ## Contributing
 This repository is done as part of Udacity Java developer. Therefore, most likely will not accept any pull requests.

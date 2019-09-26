@@ -2,12 +2,17 @@ package com.udacity.course3.reviews.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import com.udacity.course3.reviews.entity.Product;
 import com.udacity.course3.reviews.entity.Review;
+import com.udacity.course3.reviews.entity.Reviews;
 import com.udacity.course3.reviews.repository.ProductRepository;
+import com.udacity.course3.reviews.repository.ReviewApiRepository;
 import com.udacity.course3.reviews.repository.ReviewRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,13 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ReviewsController {
 
+    @Autowired
     private ReviewRepository reviewRepository;
+
+    @Autowired
     private ProductRepository productRepository;
 
-    public ReviewsController(ReviewRepository reviewRepository, ProductRepository productRepository) {
-        this.reviewRepository = reviewRepository;
-        this.productRepository = productRepository;
-    }
+    @Autowired
+    private ReviewApiRepository reviewApiRepository;
 
     /**
      * Creates a review for a product.
@@ -43,7 +49,12 @@ public class ReviewsController {
             return ResponseEntity.notFound().build();
         }
         review.setProduct(product.get());
-        return ResponseEntity.ok(reviewRepository.save(review));
+
+        // save to mysql
+        Review mysqlReview = reviewRepository.save(review);
+        // save to mongo
+        Reviews mongoReview = reviewApiRepository.save(new Reviews(mysqlReview));
+        return ResponseEntity.ok(mongoReview);
     }
 
     /**
@@ -54,6 +65,14 @@ public class ReviewsController {
      */
     @RequestMapping(value = "/reviews/products/{productId}", method = RequestMethod.GET)
     public ResponseEntity<List<?>> listReviewsForProduct(@PathVariable("productId") Integer productId) {
-        return ResponseEntity.ok(reviewRepository.findReviewsByProduct(new Product(productId)));
+        // find in mysql
+        List<Review> reviews = reviewRepository.findReviewsByProduct(new Product(productId));
+        // find in mongo
+        Iterable<Reviews> iterReviews = reviewApiRepository
+                .findAllById(reviews.stream().map(r -> r.getId()).collect(Collectors.toList()));
+        // convert to list
+        List<Reviews> mongoReviews = StreamSupport.stream(iterReviews.spliterator(), false)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(mongoReviews);
     }
 }
